@@ -3,6 +3,9 @@
 
 A full-featured Django web application for hospital management covering patients, doctors, appointments, medical history, insurance, and billing.
 <img width="3010" height="1690" alt="image" src="https://github.com/user-attachments/assets/ba1dbadd-a967-4cb7-9ac6-8bf40f08b812" />
+<img width="2912" height="1682" alt="image" src="https://github.com/user-attachments/assets/003663c2-2ae1-4a8a-8d78-37fa1ff8adb7" />
+<img width="2942" height="1650" alt="image" src="https://github.com/user-attachments/assets/1d442325-5662-4ebb-a1ce-8bd46c55279f" />
+
 
 ---
 
