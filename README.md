@@ -1,6 +1,8 @@
 # 🏥 MediCare — Hospital Management System
 
+
 A full-featured Django web application for hospital management covering patients, doctors, appointments, medical history, insurance, and billing.
+<img width="3010" height="1690" alt="image" src="https://github.com/user-attachments/assets/ba1dbadd-a967-4cb7-9ac6-8bf40f08b812" />
 
 ---
 
