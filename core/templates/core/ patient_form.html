@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Patient Profile — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap" style="max-width:860px;margin:0 auto;">
+    <div class="page-header">
+        <div>
+            <h1>{{ action }} Patient Profile</h1>
+            <p class="subtitle">Please fill in your health information accurately</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Personal Information -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+                <h3><i class="fas fa-user" style="color:#0d9488;margin-right:8px;"></i>Personal Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Date of Birth *</label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}<ul class="errorlist">{% for e in form.date_of_birth.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Gender *</label>
+                        {{ form.gender }}
+                        {% if form.gender.errors %}<ul class="errorlist">{% for e in form.gender.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Group</label>
+                        {{ form.blood_group }}
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}<ul class="errorlist">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Profile Photo</label>
+                        {{ form.photo }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+                <h3><i class="fas fa-map-marker-alt" style="color:#3b82f6;margin-right:8px;"></i>Address</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Street Address *</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}<ul class="errorlist">{% for e in form.address.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>City *</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}<ul class="errorlist">{% for e in form.city.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>State *</label>
+                        {{ form.state }}
+                        {% if form.state.errors %}<ul class="errorlist">{% for e in form.state.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>PIN Code *</label>
+                        {{ form.pincode }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Information -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+                <h3><i class="fas fa-heartbeat" style="color:#ef4444;margin-right:8px;"></i>Medical Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Known Allergies</label>
+                        {{ form.allergies }}
+                        <small class="text-muted">List any known drug, food, or environmental allergies</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <h3><i class="fas fa-phone-alt" style="color:#f59e0b;margin-right:8px;"></i>Emergency Contact</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Contact Name</label>
+                        {{ form.emergency_contact_name }}
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        {{ form.emergency_contact_phone }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> {{ action }} Profile
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

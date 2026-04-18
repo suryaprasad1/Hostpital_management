@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap" style="max-width:760px;margin:0 auto;">
+    <div style="margin-bottom:20px;">
+        <a href="{% url 'insurance_list' %}" style="color:#0d9488;text-decoration:none;font-size:.875rem;">← Back to Insurance</a>
+    </div>
+    <div class="page-header">
+        <div>
+            <h1>{{ action }}</h1>
+            <p class="subtitle">Add your insurance details to enable claim processing</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Provider & Policy Details -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header"><h3><i class="fas fa-building" style="color:#0d9488;margin-right:8px;"></i>Provider & Policy Info</h3></div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Insurance Provider *</label>
+                        {{ form.provider }}
+                        {% if form.provider.errors %}<ul class="errorlist">{% for e in form.provider.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Policy Number *</label>
+                        {{ form.policy_number }}
+                        {% if form.policy_number.errors %}<ul class="errorlist">{% for e in form.policy_number.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group full">
+                        <label>Policy / Plan Name *</label>
+                        {{ form.policy_name }}
+                    </div>
+                    <div class="form-group">
+                        <label>Policy Type *</label>
+                        {{ form.policy_type }}
+                    </div>
+                    <div class="form-group">
+                        <label>Status *</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coverage Details -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header"><h3><i class="fas fa-rupee-sign" style="color:#10b981;margin-right:8px;"></i>Coverage & Premium</h3></div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Coverage Amount (₹) *</label>
+                        {{ form.coverage_amount }}
+                        {% if form.coverage_amount.errors %}<ul class="errorlist">{% for e in form.coverage_amount.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Premium (₹) *</label>
+                        {{ form.premium_amount }}
+                    </div>
+                    <div class="form-group">
+                        <label>Deductible (₹)</label>
+                        {{ form.deductible }}
+                    </div>
+                    <div class="form-group">
+                        <label>Co-pay (%)</label>
+                        {{ form.copay_percentage }}
+                        <small class="text-muted">Percentage patient pays per claim</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date *</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}<ul class="errorlist">{% for e in form.start_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>End Date *</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}<ul class="errorlist">{% for e in form.end_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header"><h3><i class="fas fa-info-circle" style="color:#3b82f6;margin-right:8px;"></i>Additional Details</h3></div>
+            <div class="card-body">
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    <div class="form-group">
+                        <label>Covered Conditions</label>
+                        {{ form.covered_conditions }}
+                    </div>
+                    <div class="form-group">
+                        <label>Exclusions</label>
+                        {{ form.exclusions }}
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <a href="{% url 'insurance_list' %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Policy</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

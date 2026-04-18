@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Find Doctors — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Find a Doctor</h1>
+            <p class="subtitle">Search from our team of {{ doctors|length }} available specialists</p>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="card mb-4" style="margin-bottom:24px;">
+        <div class="card-body">
+            <form method="get" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+                <div class="form-group">
+                    <label>Specialization</label>
+                    {{ form.specialization }}
+                </div>
+                <div class="form-group">
+                    <label>Doctor Name</label>
+                    {{ form.name }}
+                </div>
+                <div class="form-group">
+                    <label>Max Consultation Fee (₹)</label>
+                    {{ form.max_fee }}
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Specialization filters -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+        <a href="{% url 'doctor_list' %}" class="badge badge-teal" style="padding:6px 14px;text-decoration:none;cursor:pointer;">All</a>
+        {% for spec in specializations %}
+        <a href="{% url 'doctor_list' %}?specialization={{ spec.name }}" class="badge badge-slate" style="padding:6px 14px;text-decoration:none;cursor:pointer;">{{ spec.icon }} {{ spec.name }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Doctor Grid -->
+    {% if doctors %}
+    <div class="grid-3">
+        {% for doc in doctors %}
+        <div class="doctor-card">
+            <div class="doctor-card-img">
+                {% if doc.photo %}<img src="{{ doc.photo.url }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}👨‍⚕️{% endif %}
+            </div>
+            <div class="doctor-card-body">
+                <div class="doctor-name">{{ doc.get_full_name }}</div>
+                <div class="doctor-spec">{{ doc.specialization }}</div>
+                <div class="doctor-meta">
+                    <span>🎓 {{ doc.qualification }}</span>
+                    <span>📅 {{ doc.experience_years }} yrs</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <div>
+                        <span class="stars">★★★★★</span>
+                        <span style="font-size:.75rem;color:#64748b;"> {{ doc.rating }}/5</span>
+                    </div>
+                    <span class="doctor-fee">₹{{ doc.consultation_fee }}</span>
+                </div>
+                <div style="font-size:.78rem;color:#64748b;margin-bottom:12px;">
+                    <i class="fas fa-clock" style="color:#0d9488;"></i>
+                    {{ doc.available_from|time:"h:i A" }} – {{ doc.available_to|time:"h:i A" }}
+                    &nbsp;|&nbsp; {{ doc.available_days }}
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <a href="{% url 'doctor_detail' doc.pk %}" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;">Profile</a>
+                    <a href="{% url 'appointment_book_doctor' doc.pk %}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Book</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>No doctors found matching your criteria.</p>
+        <a href="{% url 'doctor_list' %}" class="btn btn-outline mt-4">Clear Filters</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

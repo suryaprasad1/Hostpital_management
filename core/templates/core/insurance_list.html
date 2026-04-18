@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}Insurance — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Insurance Management</h1>
+            <p class="subtitle">Manage your health insurance policies and claims</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <a href="{% url 'insurance_policy_add' %}" class="btn btn-outline"><i class="fas fa-plus"></i> Add Policy</a>
+            <a href="{% url 'insurance_claim_add' %}" class="btn btn-primary"><i class="fas fa-file-medical"></i> File Claim</a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid-4" style="margin-bottom:28px;">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-shield-alt" style="color:#10b981;"></i></div>
+            <div>
+                <div class="stat-num">{{ policies|length }}</div>
+                <div class="stat-label">Total Policies</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon teal"><i class="fas fa-check-circle" style="color:#0d9488;"></i></div>
+            <div>
+                <div class="stat-num">{% for p in policies %}{% if p.is_active %}{% if forloop.first %}1{% endif %}{% endif %}{% endfor %}{{ policies|length|default:0 }}</div>
+                <div class="stat-label">Active Policies</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-file-alt" style="color:#3b82f6;"></i></div>
+            <div>
+                <div class="stat-num">{{ claims|length }}</div>
+                <div class="stat-label">Total Claims</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="fas fa-clock" style="color:#f59e0b;"></i></div>
+            <div>
+                <div class="stat-num">{% for c in claims %}{% if c.status == 'submitted' or c.status == 'under_review' %}1{% endif %}{% endfor %}</div>
+                <div class="stat-label">Pending Claims</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policies Section -->
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+            <h3><i class="fas fa-id-card" style="color:#10b981;margin-right:8px;"></i>My Policies</h3>
+            <a href="{% url 'insurance_policy_add' %}" class="btn btn-outline btn-sm">+ Add Policy</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if policies %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Policy Number</th>
+                            <th>Provider</th>
+                            <th>Plan Name</th>
+                            <th>Type</th>
+                            <th>Coverage</th>
+                            <th>Premium</th>
+                            <th>Valid Until</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for policy in policies %}
+                        <tr>
+                            <td><code style="color:#0d9488;font-size:.8rem;">{{ policy.policy_number }}</code></td>
+                            <td style="font-weight:600;">{{ policy.provider.name }}</td>
+                            <td>{{ policy.policy_name }}</td>
+                            <td><span class="badge badge-blue">{{ policy.get_policy_type_display }}</span></td>
+                            <td style="font-weight:600;color:#0d9488;">₹{{ policy.coverage_amount|floatformat:0 }}</td>
+                            <td>₹{{ policy.premium_amount }}/mo</td>
+                            <td>
+                                {{ policy.end_date|date:"d M Y" }}
+                                {% if policy.days_remaining <= 30 and policy.days_remaining > 0 %}
+                                <br><span class="badge badge-amber" style="font-size:.7rem;">⚠ {{ policy.days_remaining }}d left</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if policy.status == 'active' and policy.is_active %}
+                                    <span class="badge badge-green">Active</span>
+                                {% elif policy.status == 'expired' %}
+                                    <span class="badge badge-red">Expired</span>
+                                {% elif policy.status == 'pending' %}
+                                    <span class="badge badge-amber">Pending</span>
+                                {% elif policy.status == 'cancelled' %}
+                                    <span class="badge badge-slate">Cancelled</span>
+                                {% else %}
+                                    <span class="badge badge-slate">{{ policy.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'insurance_policy_detail' policy.pk %}" class="btn btn-outline btn-sm">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="icon">🛡️</div>
+                <p>No insurance policies found.</p>
+                <a href="{% url 'insurance_policy_add' %}" class="btn btn-primary mt-4">Add Your First Policy</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Claims Section -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-file-invoice" style="color:#3b82f6;margin-right:8px;"></i>Insurance Claims</h3>
+            <a href="{% url 'insurance_claim_add' %}" class="btn btn-outline btn-sm">+ File Claim</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if claims %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Policy</th>
+                            <th>Claim Date</th>
+                            <th>Claimed</th>
+                            <th>Approved</th>
+                            <th>Diagnosis Code</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claim in claims %}
+                        <tr>
+                            <td><code style="color:#3b82f6;font-size:.8rem;">{{ claim.claim_id }}</code></td>
+                            <td>
+                                <div style="font-size:.875rem;">{{ claim.policy.provider.name }}</div>
+                                <div class="text-muted" style="font-size:.75rem;">{{ claim.policy.policy_number }}</div>
+                            </td>
+                            <td>{{ claim.claim_date|date:"d M Y" }}</td>
+                            <td style="font-weight:700;">₹{{ claim.claimed_amount }}</td>
+                            <td>
+                                {% if claim.approved_amount %}
+                                <span style="font-weight:700;color:#10b981;">₹{{ claim.approved_amount }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>{{ claim.diagnosis_code|default:"—" }}</td>
+                            <td>
+                                {% if claim.status == 'approved' %}<span class="badge badge-green">Approved</span>
+                                {% elif claim.status == 'paid' %}<span class="badge badge-teal">Paid</span>
+                                {% elif claim.status == 'rejected' %}<span class="badge badge-red">Rejected</span>
+                                {% elif claim.status == 'under_review' %}<span class="badge badge-blue">Under Review</span>
+                                {% else %}<span class="badge badge-amber">Submitted</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="icon">📄</div>
+                <p>No insurance claims filed yet.</p>
+                <a href="{% url 'insurance_claim_add' %}" class="btn btn-primary mt-4">File a Claim</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

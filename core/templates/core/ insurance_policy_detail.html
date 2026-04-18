@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Policy {{ policy.policy_number }} — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap" style="max-width:900px;margin:0 auto;">
+    <div style="margin-bottom:20px;">
+        <a href="{% url 'insurance_list' %}" style="color:#0d9488;text-decoration:none;font-size:.875rem;">← Back to Insurance</a>
+    </div>
+
+    <div class="page-header">
+        <div>
+            <h1>Policy Details</h1>
+            <p class="subtitle">{{ policy.policy_number }} · {{ policy.provider.name }}</p>
+        </div>
+        {% if policy.is_active %}
+        <span class="badge badge-green" style="font-size:.9rem;padding:10px 18px;">✓ Active Policy</span>
+        {% else %}
+        <span class="badge badge-red" style="font-size:.9rem;padding:10px 18px;">{{ policy.get_status_display }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Policy Overview -->
+    <div style="background:linear-gradient(135deg,#059669,#0d9488);border-radius:16px;padding:28px;color:white;margin-bottom:24px;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+            <div>
+                <div style="opacity:.75;font-size:.8rem;margin-bottom:4px;">Policy Name</div>
+                <div style="font-weight:700;font-size:1rem;">{{ policy.policy_name }}</div>
+            </div>
+            <div>
+                <div style="opacity:.75;font-size:.8rem;margin-bottom:4px;">Coverage Amount</div>
+                <div style="font-weight:700;font-size:1.3rem;">₹{{ policy.coverage_amount|floatformat:0 }}</div>
+            </div>
+            <div>
+                <div style="opacity:.75;font-size:.8rem;margin-bottom:4px;">Monthly Premium</div>
+                <div style="font-weight:700;font-size:1rem;">₹{{ policy.premium_amount }}</div>
+            </div>
+            <div>
+                <div style="opacity:.75;font-size:.8rem;margin-bottom:4px;">Days Remaining</div>
+                <div style="font-weight:700;font-size:1.3rem;">{{ policy.days_remaining }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2" style="align-items:start;gap:24px;">
+        <!-- Policy Details -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-id-card" style="color:#10b981;margin-right:8px;"></i>Policy Information</h3></div>
+                <div class="card-body">
+                    <div style="display:flex;flex-direction:column;gap:12px;font-size:.875rem;">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Policy Number</span>
+                            <code style="color:#0d9488;">{{ policy.policy_number }}</code>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Provider</span>
+                            <strong>{{ policy.provider.name }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Policy Type</span>
+                            <span class="badge badge-blue">{{ policy.get_policy_type_display }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Start Date</span>
+                            <strong>{{ policy.start_date|date:"d M Y" }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">End Date</span>
+                            <strong>{{ policy.end_date|date:"d M Y" }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Deductible</span>
+                            <strong>₹{{ policy.deductible }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Co-pay</span>
+                            <strong>{{ policy.copay_percentage }}%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if policy.covered_conditions %}
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Covered Conditions</h3></div>
+                <div class="card-body">
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                        {% for cond in policy.covered_conditions.split %}
+                        <span class="badge badge-green">{{ cond }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if policy.exclusions %}
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-times-circle" style="color:#ef4444;margin-right:8px;"></i>Exclusions</h3></div>
+                <div class="card-body">
+                    <p style="font-size:.875rem;line-height:1.6;color:#64748b;">{{ policy.exclusions }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Claims for this Policy -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-file-alt" style="color:#3b82f6;margin-right:8px;"></i>Claims ({{ claims|length }})</h3>
+                    <a href="{% url 'insurance_claim_add' %}" class="btn btn-outline btn-sm">+ New Claim</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    {% if claims %}
+                    {% for claim in claims %}
+                    <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                            <div>
+                                <code style="font-size:.8rem;color:#3b82f6;">{{ claim.claim_id }}</code>
+                                <div class="text-muted text-sm">{{ claim.claim_date|date:"d M Y" }}</div>
+                            </div>
+                            {% if claim.status == 'approved' %}<span class="badge badge-green">Approved</span>
+                            {% elif claim.status == 'paid' %}<span class="badge badge-teal">Paid</span>
+                            {% elif claim.status == 'rejected' %}<span class="badge badge-red">Rejected</span>
+                            {% elif claim.status == 'under_review' %}<span class="badge badge-blue">Under Review</span>
+                            {% else %}<span class="badge badge-amber">Submitted</span>{% endif %}
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:.875rem;">
+                            <span class="text-muted">Claimed: <strong>₹{{ claim.claimed_amount }}</strong></span>
+                            {% if claim.approved_amount %}
+                            <span style="color:#10b981;">Approved: <strong>₹{{ claim.approved_amount }}</strong></span>
+                            {% endif %}
+                        </div>
+                        {% if claim.rejection_reason %}
+                        <div style="margin-top:6px;background:#fee2e2;padding:8px;border-radius:6px;font-size:.78rem;color:#991b1b;">
+                            <i class="fas fa-exclamation-circle"></i> {{ claim.rejection_reason }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-state" style="padding:40px 20px;">
+                        <div class="icon">📄</div>
+                        <p>No claims for this policy yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

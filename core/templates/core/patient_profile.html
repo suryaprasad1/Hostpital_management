@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>My Profile</h1>
+            <p class="subtitle">Your personal health information</p>
+        </div>
+        <a href="{% url 'patient_edit' %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit Profile</a>
+    </div>
+
+    <div class="grid-2" style="align-items:start;gap:24px;">
+
+        <!-- Left: Personal Details -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="card">
+                <div style="background:linear-gradient(135deg,#0d9488,#0891b2);padding:32px;text-align:center;color:white;border-radius:12px 12px 0 0;">
+                    <div style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 12px;">
+                        {% if patient.photo %}<img src="{{ patient.photo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                        {% else %}👤{% endif %}
+                    </div>
+                    <h2 style="font-size:1.3rem;font-weight:700;">{{ patient.full_name }}</h2>
+                    <div style="opacity:.85;font-size:.875rem;margin-top:4px;">{{ patient.patient_id }}</div>
+                    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                        <span class="badge" style="background:rgba(255,255,255,.2);color:white;">
+                            🩸 {{ patient.blood_group|default:"Unknown" }}
+                        </span>
+                        <span class="badge" style="background:rgba(255,255,255,.2);color:white;">
+                            👤 Age {{ patient.age }}
+                        </span>
+                        <span class="badge" style="background:rgba(255,255,255,.2);color:white;">
+                            {{ patient.get_gender_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div style="display:flex;flex-direction:column;gap:14px;font-size:.875rem;">
+                        <div style="display:flex;gap:16px;">
+                            <span style="color:#64748b;min-width:140px;font-weight:500;"><i class="fas fa-birthday-cake" style="margin-right:6px;color:#0d9488;"></i>Date of Birth</span>
+                            <span>{{ patient.date_of_birth|date:"F j, Y" }}</span>
+                        </div>
+                        <div style="display:flex;gap:16px;">
+                            <span style="color:#64748b;min-width:140px;font-weight:500;"><i class="fas fa-phone" style="margin-right:6px;color:#0d9488;"></i>Phone</span>
+                            <span>{{ patient.phone }}</span>
+                        </div>
+                        <div style="display:flex;gap:16px;">
+                            <span style="color:#64748b;min-width:140px;font-weight:500;"><i class="fas fa-envelope" style="margin-right:6px;color:#0d9488;"></i>Email</span>
+                            <span>{{ patient.user.email }}</span>
+                        </div>
+                        <div style="display:flex;gap:16px;">
+                            <span style="color:#64748b;min-width:140px;font-weight:500;"><i class="fas fa-map-marker-alt" style="margin-right:6px;color:#0d9488;"></i>Address</span>
+                            <span>{{ patient.address }}, {{ patient.city }}, {{ patient.state }} - {{ patient.pincode }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allergies -->
+            {% if patient.allergies %}
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-exclamation-triangle" style="color:#ef4444;margin-right:8px;"></i>Known Allergies</h3></div>
+                <div class="card-body">
+                    <div style="background:#fee2e2;border-radius:8px;padding:14px;font-size:.875rem;color:#991b1b;border-left:3px solid #ef4444;">
+                        {{ patient.allergies }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Emergency Contact -->
+            {% if patient.emergency_contact_name %}
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-phone-alt" style="color:#f59e0b;margin-right:8px;"></i>Emergency Contact</h3></div>
+                <div class="card-body" style="font-size:.875rem;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="color:#64748b;">Name</span>
+                        <strong>{{ patient.emergency_contact_name }}</strong>
+                    </div>
+                    <div class="divider" style="margin:10px 0;"></div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="color:#64748b;">Phone</span>
+                        <strong>{{ patient.emergency_contact_phone }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Stats -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="grid-2">
+                <div class="stat-card">
+                    <div class="stat-icon teal"><i class="fas fa-calendar-check" style="color:#0d9488;"></i></div>
+                    <div>
+                        <div class="stat-num">{{ patient.appointments.count }}</div>
+                        <div class="stat-label">Total Appointments</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-file-medical" style="color:#3b82f6;"></i></div>
+                    <div>
+                        <div class="stat-num">{{ patient.medical_records.count }}</div>
+                        <div class="stat-label">Medical Records</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-shield-alt" style="color:#10b981;"></i></div>
+                    <div>
+                        <div class="stat-num">{{ patient.insurance_policies.count }}</div>
+                        <div class="stat-label">Insurance Policies</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber"><i class="fas fa-file-invoice" style="color:#f59e0b;"></i></div>
+                    <div>
+                        <div class="stat-num">{{ patient.invoices.count }}</div>
+                        <div class="stat-label">Total Invoices</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card">
+                <div class="card-header"><h3>Quick Navigation</h3></div>
+                <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px;">
+                    <a href="{% url 'appointment_book' %}" class="btn btn-primary" style="justify-content:center;"><i class="fas fa-plus"></i> Book Appointment</a>
+                    <a href="{% url 'appointment_list' %}" class="btn btn-outline" style="justify-content:center;"><i class="fas fa-calendar"></i> Appointments</a>
+                    <a href="{% url 'patient_history' %}" class="btn btn-outline" style="justify-content:center;"><i class="fas fa-history"></i> Medical History</a>
+                    <a href="{% url 'insurance_list' %}" class="btn btn-outline" style="justify-content:center;"><i class="fas fa-shield-alt"></i> Insurance</a>
+                    <a href="{% url 'invoice_list' %}" class="btn btn-outline" style="justify-content:center;"><i class="fas fa-file-invoice"></i> Invoices</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline" style="justify-content:center;"><i class="fas fa-home"></i> Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Account Info -->
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-user-circle" style="color:#64748b;margin-right:8px;"></i>Account</h3></div>
+                <div class="card-body" style="font-size:.875rem;">
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Username</span>
+                            <strong>{{ patient.user.username }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Member Since</span>
+                            <strong>{{ patient.registered_at|date:"F Y" }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Account Status</span>
+                            {% if patient.is_active %}<span class="badge badge-green">Active</span>
+                            {% else %}<span class="badge badge-red">Inactive</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Invoice {{ invoice.invoice_id }} — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap" style="max-width:800px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <a href="{% url 'invoice_list' %}" style="color:#0d9488;text-decoration:none;font-size:.875rem;">← Back to Invoices</a>
+        <button onclick="window.print()" class="btn btn-outline btn-sm"><i class="fas fa-print"></i> Print Invoice</button>
+    </div>
+
+    <!-- Invoice Document -->
+    <div class="card" id="invoice-print">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0f766e,#0d9488);padding:32px;color:white;border-radius:12px 12px 0 0;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin-bottom:4px;">✚ MediCare</div>
+                    <div style="opacity:.8;font-size:.875rem;">Hospital Management System</div>
+                    <div style="opacity:.7;font-size:.8rem;margin-top:4px;">Hyderabad, Telangana, India</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.1rem;font-weight:700;opacity:.9;">INVOICE</div>
+                    <div style="font-size:1.4rem;font-weight:800;font-family:monospace;">{{ invoice.invoice_id }}</div>
+                    <div style="opacity:.75;font-size:.8rem;margin-top:6px;">
+                        Issued: {{ invoice.issue_date|date:"d M Y" }}<br>
+                        Due: {{ invoice.due_date|date:"d M Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Bill To -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+                <div>
+                    <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:8px;">Bill To</div>
+                    <div style="font-weight:700;font-size:1rem;">{{ invoice.patient.full_name }}</div>
+                    <div class="text-muted text-sm">{{ invoice.patient.patient_id }}</div>
+                    <div class="text-muted text-sm">{{ invoice.patient.phone }}</div>
+                    <div class="text-muted text-sm">{{ invoice.patient.user.email }}</div>
+                </div>
+                {% if invoice.appointment %}
+                <div>
+                    <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:8px;">Appointment Details</div>
+                    <div style="font-weight:700;">{{ invoice.appointment.appointment_id }}</div>
+                    <div class="text-muted text-sm">{{ invoice.appointment.doctor.get_full_name }}</div>
+                    <div class="text-muted text-sm">{{ invoice.appointment.appointment_date|date:"d M Y" }}</div>
+                    <div class="text-muted text-sm">{{ invoice.appointment.get_appointment_type_display }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Line Items -->
+            <table style="margin-bottom:20px;">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th style="text-align:right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if invoice.appointment %}
+                    <tr>
+                        <td>
+                            <strong>Consultation Fee</strong>
+                            <div class="text-muted text-sm">Dr. {{ invoice.appointment.doctor.get_full_name }} · {{ invoice.appointment.appointment_date|date:"d M Y" }}</div>
+                        </td>
+                        <td style="text-align:right;font-weight:600;">₹{{ invoice.subtotal }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td><strong>Medical Services</strong></td>
+                        <td style="text-align:right;font-weight:600;">₹{{ invoice.subtotal }}</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <!-- Totals -->
+            <div style="border-top:2px solid #e2e8f0;padding-top:16px;">
+                <div style="display:flex;justify-content:flex-end;">
+                    <div style="width:280px;display:flex;flex-direction:column;gap:10px;font-size:.875rem;">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Subtotal</span>
+                            <span>₹{{ invoice.subtotal }}</span>
+                        </div>
+                        {% if invoice.tax_amount %}
+                        <div style="display:flex;justify-content:space-between;">
+                            <span class="text-muted">Tax (GST)</span>
+                            <span>₹{{ invoice.tax_amount }}</span>
+                        </div>
+                        {% endif %}
+                        {% if invoice.discount_amount %}
+                        <div style="display:flex;justify-content:space-between;color:#10b981;">
+                            <span>Discount</span>
+                            <span>-₹{{ invoice.discount_amount }}</span>
+                        </div>
+                        {% endif %}
+                        {% if invoice.insurance_covered %}
+                        <div style="display:flex;justify-content:space-between;color:#3b82f6;">
+                            <span>Insurance Covered</span>
+                            <span>-₹{{ invoice.insurance_covered }}</span>
+                        </div>
+                        {% endif %}
+                        <div style="border-top:2px solid #e2e8f0;padding-top:10px;display:flex;justify-content:space-between;font-size:1.1rem;font-weight:800;">
+                            <span>Total Amount</span>
+                            <span style="color:#0d9488;">₹{{ invoice.total_amount }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;color:#10b981;">
+                            <span>Amount Paid</span>
+                            <span>₹{{ invoice.amount_paid }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;background:{% if invoice.balance_due > 0 %}#fee2e2{% else %}#d1fae5{% endif %};padding:12px;border-radius:8px;">
+                            <span>Balance Due</span>
+                            <span style="color:{% if invoice.balance_due > 0 %}#ef4444{% else %}#10b981{% endif %};">₹{{ invoice.balance_due }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Status + Notes -->
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <span style="font-size:.875rem;font-weight:600;color:#64748b;margin-right:10px;">Payment Status:</span>
+                    {% if invoice.status == 'paid' %}<span class="badge badge-green" style="font-size:.875rem;">✓ Fully Paid</span>
+                    {% elif invoice.status == 'partial' %}<span class="badge badge-amber" style="font-size:.875rem;">Partially Paid</span>
+                    {% else %}<span class="badge badge-red" style="font-size:.875rem;">Unpaid</span>{% endif %}
+                </div>
+                {% if invoice.notes %}
+                <div class="text-muted text-sm" style="max-width:300px;">{{ invoice.notes }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Footer -->
+            <div style="margin-top:32px;padding-top:20px;border-top:1px dashed #e2e8f0;text-align:center;font-size:.78rem;color:#94a3b8;">
+                <p>Thank you for choosing MediCare Hospital. For billing queries, contact billing@medicare.com or call 1800-MEDICARE.</p>
+                <p style="margin-top:4px;">This is a computer-generated invoice and does not require a physical signature.</p>
+            </div>
+        </div>
+    </div>
+
+    {% if invoice.balance_due > 0 %}
+    <div class="card" style="margin-top:20px;border:2px solid #f59e0b;">
+        <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;">
+            <div>
+                <div style="font-weight:700;font-size:1rem;">Payment Due</div>
+                <div class="text-muted text-sm">Balance of ₹{{ invoice.balance_due }} is outstanding</div>
+            </div>
+            <button class="btn btn-amber"><i class="fas fa-credit-card"></i> Pay ₹{{ invoice.balance_due }}</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+@media print {
+    nav, footer, .btn, .page-header a, .alert { display: none !important; }
+    .page-wrap { max-width: 100% !important; }
+    .card { box-shadow: none !important; }
+}
+</style>
+{% endblock %}

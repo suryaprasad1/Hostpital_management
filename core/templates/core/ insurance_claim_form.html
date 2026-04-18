@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}File Insurance Claim — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap" style="max-width:760px;margin:0 auto;">
+    <div style="margin-bottom:20px;">
+        <a href="{% url 'insurance_list' %}" style="color:#0d9488;text-decoration:none;font-size:.875rem;">← Back to Insurance</a>
+    </div>
+    <div class="page-header">
+        <div>
+            <h1>File Insurance Claim</h1>
+            <p class="subtitle">Submit a claim against your insurance policy</p>
+        </div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="alert alert-info" style="margin-bottom:20px;">
+        <i class="fas fa-info-circle"></i>
+        Claims are typically processed within 7–14 working days. Ensure all details are accurate and supporting documents are attached.
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header"><h3><i class="fas fa-file-medical" style="color:#3b82f6;margin-right:8px;"></i>Claim Details</h3></div>
+            <div class="card-body">
+                <div style="display:flex;flex-direction:column;gap:18px;">
+                    <div class="form-group">
+                        <label>Insurance Policy *</label>
+                        {{ form.policy }}
+                        {% if form.policy.errors %}<ul class="errorlist">{% for e in form.policy.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Related Appointment (Optional)</label>
+                        {{ form.appointment }}
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Claim Date *</label>
+                            {{ form.claim_date }}
+                            {% if form.claim_date.errors %}<ul class="errorlist">{% for e in form.claim_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label>Claimed Amount (₹) *</label>
+                            {{ form.claimed_amount }}
+                            {% if form.claimed_amount.errors %}<ul class="errorlist">{% for e in form.claimed_amount.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ICD-10 Diagnosis Code</label>
+                        {{ form.diagnosis_code }}
+                        <small class="text-muted">e.g. J06.9 for upper respiratory infection</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<ul class="errorlist">{% for e in form.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        <small class="text-muted">Describe the medical services for which you're claiming</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Supporting Documents</label>
+                        {{ form.documents }}
+                        <small class="text-muted">Upload bills, prescriptions, lab reports (PDF/Image)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header"><h3><i class="fas fa-clipboard-check" style="color:#10b981;margin-right:8px;"></i>Submission Checklist</h3></div>
+            <div class="card-body">
+                <div style="display:flex;flex-direction:column;gap:10px;font-size:.875rem;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:400;">
+                        <input type="checkbox" required style="width:16px;height:16px;accent-color:#0d9488;">
+                        I confirm that all information provided is accurate and truthful
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:400;">
+                        <input type="checkbox" required style="width:16px;height:16px;accent-color:#0d9488;">
+                        I have not previously claimed for the same treatment/services
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:400;">
+                        <input type="checkbox" required style="width:16px;height:16px;accent-color:#0d9488;">
+                        I understand that false claims may result in policy cancellation
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <a href="{% url 'insurance_list' %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Claim</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

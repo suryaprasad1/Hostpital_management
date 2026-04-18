@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}MediCare — World-Class Healthcare{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section style="background:linear-gradient(135deg,#0f766e 0%,#0d9488 50%,#0891b2 100%);color:white;padding:80px 0;">
+    <div style="max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+        <div>
+            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600;margin-bottom:20px;">
+                🏥 Trusted by 50,000+ patients
+            </div>
+            <h1 style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;line-height:1.2;margin-bottom:16px;">
+                Your Health,<br>Our <span style="color:#99f6e4;">Commitment</span>
+            </h1>
+            <p style="font-size:1.05rem;line-height:1.7;opacity:.9;margin-bottom:32px;">
+                Book appointments with top specialists, manage your medical records, track insurance claims, and take control of your healthcare journey — all in one place.
+            </p>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+                <a href="{% url 'appointment_book' %}" class="btn" style="background:white;color:#0f766e;font-size:1rem;padding:12px 28px;">
+                    <i class="fas fa-calendar-plus"></i> Book Appointment
+                </a>
+                <a href="{% url 'doctor_list' %}" class="btn btn-outline" style="border-color:rgba(255,255,255,.5);color:white;font-size:1rem;padding:12px 28px;">
+                    <i class="fas fa-user-md"></i> Find a Doctor
+                </a>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div style="background:rgba(255,255,255,.1);border-radius:16px;padding:24px;text-align:center;backdrop-filter:blur(10px);">
+                <div style="font-size:2.5rem;font-weight:700;">{{ stats.doctors }}+</div>
+                <div style="opacity:.8;font-size:.875rem;margin-top:4px;">Expert Doctors</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:16px;padding:24px;text-align:center;backdrop-filter:blur(10px);">
+                <div style="font-size:2.5rem;font-weight:700;">{{ stats.patients }}+</div>
+                <div style="opacity:.8;font-size:.875rem;margin-top:4px;">Patients Served</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:16px;padding:24px;text-align:center;backdrop-filter:blur(10px);">
+                <div style="font-size:2.5rem;font-weight:700;">{{ stats.appointments }}+</div>
+                <div style="opacity:.8;font-size:.875rem;margin-top:4px;">Appointments</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:16px;padding:24px;text-align:center;backdrop-filter:blur(10px);">
+                <div style="font-size:2.5rem;font-weight:700;">24/7</div>
+                <div style="opacity:.8;font-size:.875rem;margin-top:4px;">Emergency Care</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SPECIALIZATIONS -->
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;">Our Medical Specializations</h2>
+            <p class="subtitle">Expert care across all major medical disciplines</p>
+        </div>
+    </div>
+    <div class="grid-4" style="margin-bottom:48px;">
+        {% for spec in specializations %}
+        <a href="{% url 'doctor_list' %}?specialization={{ spec.name }}" style="text-decoration:none;">
+            <div class="card" style="padding:20px;text-align:center;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='#0d9488'" onmouseout="this.style.borderColor='#e2e8f0'">
+                <div style="font-size:2rem;margin-bottom:8px;">{{ spec.icon }}</div>
+                <div style="font-weight:600;font-size:.9rem;color:#0f172a;">{{ spec.name }}</div>
+                <div style="font-size:.75rem;color:#64748b;margin-top:4px;">{{ spec.doc_count }} doctor{{ spec.doc_count|pluralize }}</div>
+            </div>
+        </a>
+        {% empty %}
+        <p class="text-muted">No specializations yet.</p>
+        {% endfor %}
+    </div>
+
+    <!-- FEATURED DOCTORS -->
+    <div class="page-header">
+        <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;">Meet Our Specialists</h2>
+            <p class="subtitle">Experienced doctors dedicated to your wellbeing</p>
+        </div>
+        <a href="{% url 'doctor_list' %}" class="btn btn-outline">View All Doctors →</a>
+    </div>
+    <div class="grid-3" style="margin-bottom:48px;">
+        {% for doc in doctors %}
+        <div class="doctor-card">
+            <div class="doctor-card-img">
+                {% if doc.photo %}
+                    <img src="{{ doc.photo.url }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                    👨‍⚕️
+                {% endif %}
+            </div>
+            <div class="doctor-card-body">
+                <div class="doctor-name">{{ doc.get_full_name }}</div>
+                <div class="doctor-spec">{{ doc.specialization }}</div>
+                <div class="doctor-meta">
+                    <span>🎓 {{ doc.qualification }}</span>
+                    <span>📅 {{ doc.experience_years }} yrs exp</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div>
+                        <span class="stars">★★★★★</span>
+                        <span style="font-size:.75rem;color:#64748b;"> {{ doc.rating }}/5</span>
+                    </div>
+                    <div class="doctor-fee">₹{{ doc.consultation_fee }}</div>
+                </div>
+                <div style="margin-top:12px;display:flex;gap:8px;">
+                    <a href="{% url 'doctor_detail' doc.pk %}" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;">View Profile</a>
+                    <a href="{% url 'appointment_book_doctor' doc.pk %}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Book</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- FEATURES -->
+    <div style="background:linear-gradient(135deg,#f0fdfa,#e0f2fe);border-radius:20px;padding:48px;margin-bottom:48px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;text-align:center;margin-bottom:36px;">Why Choose MediCare?</h2>
+        <div class="grid-4">
+            {% for item in "1234"|make_list %}
+            {% if forloop.first %}
+            <div style="text-align:center;padding:24px 16px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">🏆</div>
+                <h4 style="font-weight:700;margin-bottom:8px;">Certified Experts</h4>
+                <p style="font-size:.85rem;color:#64748b;line-height:1.5;">All our doctors are board-certified specialists with proven track records.</p>
+            </div>
+            {% elif forloop.counter == 2 %}
+            <div style="text-align:center;padding:24px 16px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">⚡</div>
+                <h4 style="font-weight:700;margin-bottom:8px;">Quick Appointments</h4>
+                <p style="font-size:.85rem;color:#64748b;line-height:1.5;">Book same-day appointments with minimal waiting time.</p>
+            </div>
+            {% elif forloop.counter == 3 %}
+            <div style="text-align:center;padding:24px 16px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
+                <h4 style="font-weight:700;margin-bottom:8px;">Secure Records</h4>
+                <p style="font-size:.85rem;color:#64748b;line-height:1.5;">Your medical data is encrypted and fully private.</p>
+            </div>
+            {% else %}
+            <div style="text-align:center;padding:24px 16px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">💳</div>
+                <h4 style="font-weight:700;margin-bottom:8px;">Insurance Ready</h4>
+                <p style="font-size:.85rem;color:#64748b;line-height:1.5;">Seamless insurance claim processing with all major providers.</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
