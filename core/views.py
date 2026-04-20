@@ -9,11 +9,13 @@ from django.http import JsonResponse
 
 from .models import (
     Patient, Doctor, Specialization, Appointment, MedicalRecord,
-    Vitals, InsuranceProvider, InsurancePolicy, InsuranceClaim, Invoice, DoctorReview
+    Vitals, InsuranceProvider, InsurancePolicy, InsuranceClaim, Invoice, DoctorReview,
+    Payment, Complaint, ComplaintReply, ChatSession, ChatMessage
 )
 from .forms import (
     UserRegistrationForm, PatientForm, AppointmentForm, AppointmentUpdateForm,
-    MedicalRecordForm, VitalsForm, InsurancePolicyForm, InsuranceClaimForm, DoctorSearchForm
+    MedicalRecordForm, VitalsForm, InsurancePolicyForm, InsuranceClaimForm, DoctorSearchForm,
+    PaymentForm, ComplaintForm, ComplaintReplyForm, ChatMessageForm
 )
 
 
@@ -153,7 +155,11 @@ def patient_create(request):
 
 @login_required
 def patient_edit(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     if request.method == 'POST':
         form = PatientForm(request.POST, request.FILES, instance=patient)
         if form.is_valid():
@@ -170,7 +176,11 @@ def patient_edit(request):
 # ──────────────────────────────────────────────────────────
 @login_required
 def appointment_list(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     status_filter = request.GET.get('status', '')
     appointments = Appointment.objects.filter(patient=patient).select_related('doctor__user', 'doctor__specialization')
     if status_filter:
@@ -184,7 +194,11 @@ def appointment_list(request):
 
 @login_required
 def appointment_book(request, doctor_id=None):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     initial = {}
     if doctor_id:
         initial['doctor'] = doctor_id
@@ -204,7 +218,11 @@ def appointment_book(request, doctor_id=None):
 
 @login_required
 def appointment_detail(request, pk):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     appointment = get_object_or_404(Appointment, pk=pk, patient=patient)
     try:
         medical_record = appointment.medical_record
@@ -218,7 +236,11 @@ def appointment_detail(request, pk):
 
 @login_required
 def appointment_cancel(request, pk):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     appointment = get_object_or_404(Appointment, pk=pk, patient=patient)
     if appointment.status in ['pending', 'confirmed']:
         appointment.status = 'cancelled'
@@ -234,7 +256,11 @@ def appointment_cancel(request, pk):
 # ──────────────────────────────────────────────────────────
 @login_required
 def patient_history(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     records = MedicalRecord.objects.filter(patient=patient).select_related('doctor__user', 'appointment')
     vitals = Vitals.objects.filter(patient=patient).order_by('-recorded_at')[:10]
     return render(request, 'core/patient_history.html', {
@@ -246,7 +272,11 @@ def patient_history(request):
 
 @login_required
 def medical_record_detail(request, pk):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     record = get_object_or_404(MedicalRecord, pk=pk, patient=patient)
     return render(request, 'core/medical_record_detail.html', {'record': record})
 
@@ -256,7 +286,11 @@ def medical_record_detail(request, pk):
 # ──────────────────────────────────────────────────────────
 @login_required
 def insurance_list(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     policies = InsurancePolicy.objects.filter(patient=patient).select_related('provider')
     claims = InsuranceClaim.objects.filter(policy__patient=patient).select_related('policy__provider')
     return render(request, 'core/insurance_list.html', {
@@ -268,7 +302,11 @@ def insurance_list(request):
 
 @login_required
 def insurance_policy_add(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     if request.method == 'POST':
         form = InsurancePolicyForm(request.POST)
         if form.is_valid():
@@ -284,7 +322,11 @@ def insurance_policy_add(request):
 
 @login_required
 def insurance_policy_detail(request, pk):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     policy = get_object_or_404(InsurancePolicy, pk=pk, patient=patient)
     claims = InsuranceClaim.objects.filter(policy=policy)
     return render(request, 'core/insurance_policy_detail.html', {
@@ -295,7 +337,11 @@ def insurance_policy_detail(request, pk):
 
 @login_required
 def insurance_claim_add(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     if request.method == 'POST':
         form = InsuranceClaimForm(patient=patient, data=request.POST, files=request.FILES)
         if form.is_valid():
@@ -312,13 +358,217 @@ def insurance_claim_add(request):
 # ──────────────────────────────────────────────────────────
 @login_required
 def invoice_list(request):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     invoices = Invoice.objects.filter(patient=patient).select_related('appointment')
     return render(request, 'core/invoice_list.html', {'invoices': invoices, 'patient': patient})
 
 
 @login_required
 def invoice_detail(request, pk):
-    patient = get_object_or_404(Patient, user=request.user)
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
     invoice = get_object_or_404(Invoice, pk=pk, patient=patient)
     return render(request, 'core/invoice_detail.html', {'invoice': invoice})
+
+
+# ──────────────────────────────────────────────────────────
+#  PAYMENTS
+# ──────────────────────────────────────────────────────────
+@login_required
+def payment_list(request):
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
+    payments = Payment.objects.filter(patient=patient).select_related('invoice', 'appointment')
+    return render(request, 'core/payment_list.html', {'payments': payments, 'patient': patient})
+
+
+@login_required
+def payment_create(request, invoice_id=None):
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
+    invoice = None
+    if invoice_id:
+        invoice = get_object_or_404(Invoice, pk=invoice_id, patient=patient)
+
+    if request.method == 'POST':
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.patient = patient
+            payment.invoice = invoice
+            payment.status = Payment.SUCCESS
+            payment.save()
+            messages.success(request, f'Payment of ₹{payment.amount} successful!')
+            return redirect('payment_list')
+    else:
+        initial = {}
+        if invoice:
+            initial['amount'] = invoice.balance_due
+        form = PaymentForm(initial=initial)
+    return render(request, 'core/payment_form.html', {
+        'form': form,
+        'patient': patient,
+        'invoice': invoice,
+    })
+
+
+@login_required
+def payment_detail(request, pk):
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
+    payment = get_object_or_404(Payment, pk=pk, patient=patient)
+    return render(request, 'core/payment_detail.html', {'payment': payment})
+
+
+# ──────────────────────────────────────────────────────────
+#  COMPLAINTS
+# ──────────────────────────────────────────────────────────
+@login_required
+def complaint_list(request):
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
+    complaints = Complaint.objects.filter(patient=patient).select_related('assigned_to')
+    return render(request, 'core/complaint_list.html', {'complaints': complaints, 'patient': patient})
+
+
+@login_required
+def complaint_create(request):
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST, request.FILES)
+        if form.is_valid():
+            complaint = form.save(commit=False)
+            complaint.patient = patient
+            complaint.save()
+            messages.success(request, f'Complaint {complaint.complaint_id} submitted successfully!')
+            return redirect('complaint_list')
+    else:
+        form = ComplaintForm()
+    return render(request, 'core/complaint_form.html', {'form': form, 'action': 'Submit Complaint'})
+
+
+@login_required
+def complaint_detail(request, pk):
+    try:
+        patient = request.user.patient_profile
+    except Patient.DoesNotExist:
+        messages.info(request, 'Please complete your patient profile first.')
+        return redirect('patient_create')
+    complaint = get_object_or_404(Complaint, pk=pk, patient=patient)
+    replies = complaint.replies.select_related('author')
+    if request.method == 'POST':
+        reply_form = ComplaintReplyForm(request.POST, instance=complaint)
+        if reply_form.is_valid():
+            reply = complaint.replies.create(
+                author=request.user,
+                message=request.POST.get('reply_message', ''),
+                is_staff=request.user.is_staff
+            )
+            messages.success(request, 'Reply added successfully!')
+            return redirect('complaint_detail', pk=pk)
+    else:
+        reply_form = ComplaintReplyForm()
+    return render(request, 'core/complaint_detail.html', {
+        'complaint': complaint,
+        'replies': replies,
+        'reply_form': reply_form,
+    })
+
+
+# ──────────────────────────────────────────────────────────
+#  CHATBOT
+# ──────────────────────────────────────────────────────────
+@login_required
+def chatbot(request):
+    patient = None
+    if hasattr(request.user, 'patient_profile'):
+        patient = request.user.patient_profile
+
+    if request.method == 'POST':
+        form = ChatMessageForm(request.POST)
+        if form.is_valid():
+            message_content = form.cleaned_data['message']
+            session, created = ChatSession.objects.get_or_create(
+                is_active=True,
+                user=request.user if request.user.is_authenticated else None
+            )
+            ChatMessage.objects.create(
+                session=session,
+                role=ChatMessage.USER,
+                content=message_content
+            )
+
+            bot_response = get_bot_response(message_content)
+
+            ChatMessage.objects.create(
+                session=session,
+                role=ChatMessage.BOT,
+                content=bot_response
+            )
+            return redirect('chatbot')
+    else:
+        form = ChatMessageForm()
+
+    session = ChatSession.objects.filter(
+        user=request.user if request.user.is_authenticated else None,
+        is_active=True
+    ).first()
+
+    if session:
+        messages = session.messages.all()
+    else:
+        messages = []
+
+    return render(request, 'core/chatbot.html', {
+        'form': form,
+        'messages': messages,
+        'patient': patient,
+    })
+
+
+def get_bot_response(message):
+    message = message.lower()
+
+    responses = {
+        'appointment': 'To book an appointment, go to the Appointments section and click "Book Appointment". You can select a doctor and choose your preferred date and time.',
+        'book': 'To book an appointment, go to the Appointments section and click "Book Appointment". You can select a doctor and choose your preferred date and time.',
+        'doctor': 'You can view all available doctors on our Doctors page. Use the search filter to find doctors by specialization or name.',
+        'specialization': 'We have various specializations including General Medicine, Cardiology, Neurology, Orthopedics, Pediatrics, and more. Check our Doctors page for the complete list.',
+        'insurance': 'You can manage your insurance policies in the Insurance section. You can add new policies and view existing claims.',
+        'invoice': 'You can view your invoices in the Invoices section. Outstanding payments can be paid online.',
+        'payment': 'To make a payment, go to the Payments section or click on any unpaid invoice. We accept Cash, Card, UPI, Net Banking, and Wallet.',
+        'contact': 'You can reach us at: Phone: +91-XXX-XXX-XXXX, Email: info@hospital.com, Address: Hospital Address',
+        'emergency': 'For emergencies, please call our 24/7 emergency helpline: +91-XXX-XXX-XXXX',
+        'hello': 'Hello! How can I help you today? You can ask about appointments, doctors, payments, insurance, or any other hospital services.',
+        'hi': 'Hello! How can I help you today? You can ask about appointments, doctors, payments, insurance, or any other hospital services.',
+        'help': 'I can help you with: booking appointments, finding doctors, viewing invoices, making payments, insurance queries, and more. Just ask!',
+    }
+
+    for key, response in responses.items():
+        if key in message:
+            return response
+
+    return 'Thank you for your message. For detailed assistance, please contact our helpdesk or visit the relevant section on your dashboard. You can also call us at +91-XXX-XXX-XXXX.'

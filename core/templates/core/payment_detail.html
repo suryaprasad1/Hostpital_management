@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Payment Details — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Payment Details</h1>
+            <p class="subtitle">Transaction information</p>
+        </div>
+        <a href="{% url 'payment_list' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Payments
+        </a>
+    </div>
+
+    <div class="grid-2" style="gap:24px;">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-receipt" style="color:#3b82f6;margin-right:8px;"></i>Transaction Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="detail-row">
+                    <span>Payment ID</span>
+                    <code style="color:#3b82f6;">{{ payment.payment_id }}</code>
+                </div>
+                <div class="detail-row">
+                    <span>Date & Time</span>
+                    <span>{{ payment.created_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Amount</span>
+                    <strong style="font-size:1.25rem;">₹{{ payment.amount }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Payment Method</span>
+                    <span>{{ payment.get_method_display }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Status</span>
+                    {% if payment.status == 'success' %}<span class="badge badge-green">Success</span>
+                    {% elif payment.status == 'pending' %}<span class="badge badge-amber">Pending</span>
+                    {% elif payment.status == 'failed' %}<span class="badge badge-red">Failed</span>
+                    {% elif payment.status == 'refunded' %}<span class="badge badge-blue">Refunded</span>{% endif %}
+                </div>
+                {% if payment.paid_at %}
+                <div class="detail-row">
+                    <span>Paid At</span>
+                    <span>{{ payment.paid_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            {% if payment.invoice %}
+            <div class="card" style="margin-bottom:16px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-file-invoice" style="color:#f59e0b;margin-right:8px;"></i>Linked Invoice</h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span>Invoice ID</span>
+                        <a href="{% url 'invoice_detail' payment.invoice.pk %}"><strong>{{ payment.invoice.invoice_id }}</strong></a>
+                    </div>
+                    <div class="detail-row">
+                        <span>Total Amount</span>
+                        <span>₹{{ payment.invoice.total_amount }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Balance Due</span>
+                        <span>₹{{ payment.invoice.balance_due }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if payment.appointment %}
+            <div class="card" style="margin-bottom:16px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-check" style="color:#10b981;margin-right:8px;"></i>Related Appointment</h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span>Appointment ID</span>
+                        <a href="{% url 'appointment_detail' payment.appointment.pk %}"><strong>{{ payment.appointment.appointment_id }}</strong></a>
+                    </div>
+                    <div class="detail-row">
+                        <span>Doctor</span>
+                        <span>{{ payment.appointment.doctor.get_full_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Date</span>
+                        <span>{{ payment.appointment.appointment_date|date:"d M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if payment.transaction_ref or payment.upi_id or payment.card_last4 %}
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle" style="color:#6366f1;margin-right:8px;"></i>Transaction Reference</h3>
+                </div>
+                <div class="card-body">
+                    {% if payment.transaction_ref %}
+                    <div class="detail-row">
+                        <span>Transaction Ref</span>
+                        <code>{{ payment.transaction_ref }}</code>
+                    </div>
+                    {% endif %}
+                    {% if payment.upi_id %}
+                    <div class="detail-row">
+                        <span>UPI ID</span>
+                        <span>{{ payment.upi_id }}</span>
+                    </div>
+                    {% endif %}
+                    {% if payment.card_last4 %}
+                    <div class="detail-row">
+                        <span>Card</span>
+                        <span>{{ payment.card_type }} ****{{ payment.card_last4 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if payment.bank_name %}
+                    <div class="detail-row">
+                        <span>Bank</span>
+                        <span>{{ payment.bank_name }}</span>
+                    </div>
+                    {% endif %}
+                    {% if payment.notes %}
+                    <div class="detail-row">
+                        <span>Notes</span>
+                        <span>{{ payment.notes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

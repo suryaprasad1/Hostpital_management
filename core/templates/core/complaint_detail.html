@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Complaint Details — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Complaint Details</h1>
+            <p class="subtitle">Complaint ID: {{ complaint.complaint_id }}</p>
+        </div>
+        <a href="{% url 'complaint_list' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Complaints
+        </a>
+    </div>
+
+    <div class="grid-2" style="gap:24px;">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-exclamation-circle" style="color:#ef4444;margin-right:8px;"></i>Complaint Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="detail-row">
+                    <span>Subject</span>
+                    <strong>{{ complaint.subject }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Category</span>
+                    <span>{{ complaint.get_category_display }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Priority</span>
+                    {% if complaint.priority == 'urgent' %}<span class="badge badge-red">Urgent</span>
+                    {% elif complaint.priority == 'high' %}<span class="badge badge-amber">High</span>
+                    {% elif complaint.priority == 'medium' %}<span class="badge badge-blue">Medium</span>
+                    {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+                </div>
+                <div class="detail-row">
+                    <span>Status</span>
+                    {% if complaint.status == 'open' %}<span class="badge badge-blue">Open</span>
+                    {% elif complaint.status == 'in_progress' %}<span class="badge badge-amber">In Progress</span>
+                    {% elif complaint.status == 'resolved' %}<span class="badge badge-green">Resolved</span>
+                    {% else %}<span class="badge badge-gray">Closed</span>{% endif %}
+                </div>
+                <div class="detail-row">
+                    <span>Created</span>
+                    <span>{{ complaint.created_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                {% if complaint.resolved_at %}
+                <div class="detail-row">
+                    <span>Resolved</span>
+                    <span>{{ complaint.resolved_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                {% endif %}
+                {% if complaint.assigned_to %}
+                <div class="detail-row">
+                    <span>Assigned To</span>
+                    <span>{{ complaint.assigned_to.get_full_name }}</span>
+                </div>
+                {% endif %}
+                <div class="detail-row">
+                    <span>Description</span>
+                    <p style="margin:4px 0 0;">{{ complaint.description }}</p>
+                </div>
+                {% if complaint.attachment %}
+                <div class="detail-row">
+                    <span>Attachment</span>
+                    <a href="{{ complaint.attachment.url }}" target="_blank">
+                        <i class="fas fa-paperclip"></i> View Attachment
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            {% if complaint.resolution_note %}
+            <div class="card" style="margin-bottom:16px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-check" style="color:#10b981;margin-right:8px;"></i>Resolution</h3>
+                </div>
+                <div class="card-body">
+                    <p>{{ complaint.resolution_note }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-comments" style="color:#3b82f6;margin-right:8px;"></i>Replies</h3>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    {% if replies %}
+                    <div style="max-height:300px;overflow-y:auto;">
+                        {% for reply in replies %}
+                        <div style="padding:16px;border-bottom:1px solid #eee;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <strong>
+                                    {% if reply.is_staff %}<i class="fas fa-user-tie" style="color:#3b82f6;"></i> {% endif %}{{ reply.author.get_full_name|default:reply.author.username }}
+                                </strong>
+                                <small class="text-muted">{{ reply.created_at|date:"d M Y, h:i A" }}</small>
+                            </div>
+                            <p style="margin:0;color:#374151;">{{ reply.message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="padding:24px;text-align:center;color:#64748b;">
+                        <p>No replies yet.</p>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" style="padding:16px;border-top:1px solid #eee;">
+                        {% csrf_token %}
+                        <div class="form-group" style="margin:0;">
+                            <label>Add Reply</label>
+                            <textarea name="reply_message" class="form-control" rows="3" placeholder="Type your reply..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:12px;">
+                            <i class="fas fa-paper-plane"></i> Send Reply
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

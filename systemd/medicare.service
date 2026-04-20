@@ -1,0 +1,20 @@
+[Unit]
+Description=MediCare Hospital Management Gunicorn
+After=network.target
+
+[Service]
+Type=notify
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Hostpital_management
+ExecStart=/home/ubuntu/Hostpital_management/venv/bin/gunicorn \
+    --config /home/ubuntu/Hostpital_management/gunicorn_config.py \
+    Hostpital_management.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

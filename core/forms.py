@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Patient, Doctor, Appointment, MedicalRecord, Vitals, InsurancePolicy, InsuranceClaim, Invoice
+from .models import Patient, Doctor, Appointment, MedicalRecord, Vitals, InsurancePolicy, InsuranceClaim, Invoice, Payment, Complaint, ChatSession, ChatMessage
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -109,3 +109,55 @@ class DoctorSearchForm(forms.Form):
     specialization = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Specialization...'}))
     name = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Doctor name...'}))
     max_fee = forms.DecimalField(required=False, widget=forms.NumberInput(attrs={'placeholder': 'Max fee...'}))
+
+
+# ─────────────────────────────────────────────
+#  PAYMENT
+# ─────────────────────────────────────────────
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        exclude = ['patient', 'invoice', 'appointment', 'payment_id', 'status', 'transaction_ref', 'paid_at', 'created_at', 'updated_at']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class PaymentInlineForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = ['amount', 'method', 'transaction_ref', 'upi_id', 'card_last4', 'card_type', 'bank_name', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+# ─────────────────────────────────────────────
+#  COMPLAINT
+# ─────────────────────────────────────────────
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        exclude = ['patient', 'complaint_id', 'status', 'related_doctor', 'related_appointment', 'assigned_to', 'resolution_note', 'resolved_at', 'satisfaction_rating', 'created_at', 'updated_at']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class ComplaintReplyForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['resolution_note']
+
+
+# ─────────────────────────────────────────────
+#  CHATBOT
+# ─────────────────────────────────────────────
+class ChatMessageForm(forms.Form):
+    message = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Type your message...',
+            'class': 'form-control',
+            'autocomplete': 'off'
+        })
+    )

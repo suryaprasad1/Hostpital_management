@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Make Payment — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Make Payment</h1>
+            <p class="subtitle">Complete your payment securely</p>
+        </div>
+    </div>
+
+    <div class="grid-2" style="gap:24px;">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-credit-card" style="color:#3b82f6;margin-right:8px;"></i>Payment Details</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label>{{ form.amount.label }}</label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                        <small class="error">{{ form.amount.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.method.label }}</label>
+                        {{ form.method }}
+                        {% if form.method.errors %}
+                        <small class="error">{{ form.method.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.upi_id.label }}</label>
+                        {{ form.upi_id }}
+                        {% if form.upi_id.errors %}
+                        <small class="error">{{ form.upi_id.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.card_last4.label }}</label>
+                        {{ form.card_last4 }}
+                        {% if form.card_last4.errors %}
+                        <small class="error">{{ form.card_last4.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.card_type.label }}</label>
+                        {{ form.card_type }}
+                        {% if form.card_type.errors %}
+                        <small class="error">{{ form.card_type.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.bank_name.label }}</label>
+                        {{ form.bank_name }}
+                        {% if form.bank_name.errors %}
+                        <small class="error">{{ form.bank_name.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.transaction_ref.label }}</label>
+                        {{ form.transaction_ref }}
+                        {% if form.transaction_ref.errors %}
+                        <small class="error">{{ form.transaction_ref.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                        <small class="error">{{ form.notes.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-lock"></i> Pay Now
+                        </button>
+                        <a href="{% url 'payment_list' %}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if invoice %}
+        <div>
+            <div class="card" style="margin-bottom:16px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-file-invoice" style="color:#f59e0b;margin-right:8px;"></i>Invoice Summary</h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span>Invoice ID</span>
+                        <strong>{{ invoice.invoice_id }}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Total Amount</span>
+                        <strong>₹{{ invoice.total_amount }}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Amount Paid</span>
+                        <span>₹{{ invoice.amount_paid }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Balance Due</span>
+                        <strong style="color:#ef4444;">₹{{ invoice.balance_due }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h4 style="margin-bottom:12px;">Payment Methods</h4>
+                    <ul style="list-style:none;padding:0;margin:0;">
+                        <li style="padding:8px 0;border-bottom:1px solid #eee;"><i class="fas fa-money-bill-wave" style="color:#10b981;width:24px;"></i> Cash</li>
+                        <li style="padding:8px 0;border-bottom:1px solid #eee;"><i class="fas fa-credit-card" style="color:#3b82f6;width:24px;"></i> Credit / Debit Card</li>
+                        <li style="padding:8px 0;border-bottom:1px solid #eee;"><i class="fas fa-mobile-alt" style="color:#8b5cf6;width:24px;"></i> UPI</li>
+                        <li style="padding:8px 0;border-bottom:1px solid #eee;"><i class="fas fa-university" style="color:#6366f1;width:24px;"></i> Net Banking</li>
+                        <li style="padding:8px 0;"><i class="fas fa-wallet" style="color:#f59e0b;width:24px;"></i> Wallet</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

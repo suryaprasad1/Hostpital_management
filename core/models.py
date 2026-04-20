@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+import uuid
 
 
 # ─────────────────────────────────────────────
@@ -394,3 +395,219 @@ class Invoice(models.Model):
     @property
     def balance_due(self):
         return self.total_amount - self.amount_paid
+
+# ─────────────────────────────────────────────
+#  PAYMENT
+# ─────────────────────────────────────────────
+class Payment(models.Model):
+    PENDING   = 'pending'
+    SUCCESS   = 'success'
+    FAILED    = 'failed'
+    REFUNDED  = 'refunded'
+    STATUS_CHOICES = [
+        (PENDING,  'Pending'),
+        (SUCCESS,  'Success'),
+        (FAILED,   'Failed'),
+        (REFUNDED, 'Refunded'),
+    ]
+
+    CASH       = 'cash'
+    CARD       = 'card'
+    UPI        = 'upi'
+    NET_BANKING = 'net_banking'
+    INSURANCE  = 'insurance'
+    WALLET     = 'wallet'
+    METHOD_CHOICES = [
+        (CASH,        'Cash'),
+        (CARD,        'Credit / Debit Card'),
+        (UPI,         'UPI'),
+        (NET_BANKING, 'Net Banking'),
+        (INSURANCE,   'Insurance'),
+        (WALLET,      'Wallet'),
+    ]
+
+    payment_id       = models.CharField(max_length=36, unique=True, editable=False)
+    patient          = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='payments')
+    invoice          = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
+    appointment      = models.ForeignKey(Appointment, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
+    amount           = models.DecimalField(max_digits=10, decimal_places=2)
+    method           = models.CharField(max_length=20, choices=METHOD_CHOICES, default=UPI)
+    status           = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    # Card/UPI details (never store real card numbers – store masked only)
+    transaction_ref  = models.CharField(max_length=100, blank=True, help_text='Bank/UPI transaction reference')
+    upi_id           = models.CharField(max_length=100, blank=True)
+    card_last4       = models.CharField(max_length=4, blank=True)
+    card_type        = models.CharField(max_length=20, blank=True)   # Visa, Mastercard …
+    bank_name        = models.CharField(max_length=100, blank=True)
+    # Receipt
+    notes            = models.TextField(blank=True)
+    failure_reason   = models.TextField(blank=True)
+    paid_at          = models.DateTimeField(null=True, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+    updated_at       = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"PAY-{self.payment_id[:8]} | ₹{self.amount} | {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        if not self.payment_id:
+            self.payment_id = str(uuid.uuid4())
+        if self.status == self.SUCCESS and not self.paid_at:
+            self.paid_at = timezone.now()
+            # Mark invoice paid if linked
+            if self.invoice:
+                self.invoice.amount_paid = (self.invoice.amount_paid or 0) + self.amount
+                if self.invoice.amount_paid >= self.invoice.total_amount:
+                    self.invoice.status = 'paid'
+                else:
+                    self.invoice.status = 'partial'
+                self.invoice.save()
+        super().save(*args, **kwargs)
+
+
+class PaymentRefund(models.Model):
+    payment      = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='refund')
+    amount       = models.DecimalField(max_digits=10, decimal_places=2)
+    reason       = models.TextField()
+    processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    processed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Refund ₹{self.amount} for {self.payment}"
+
+
+# ─────────────────────────────────────────────
+#  COMPLAINT BOX
+# ─────────────────────────────────────────────
+class Complaint(models.Model):
+    OPEN        = 'open'
+    IN_PROGRESS = 'in_progress'
+    RESOLVED    = 'resolved'
+    CLOSED      = 'closed'
+    STATUS_CHOICES = [
+        (OPEN,        'Open'),
+        (IN_PROGRESS, 'In Progress'),
+        (RESOLVED,    'Resolved'),
+        (CLOSED,      'Closed'),
+    ]
+
+    LOW    = 'low'
+    MEDIUM = 'medium'
+    HIGH   = 'high'
+    URGENT = 'urgent'
+    PRIORITY_CHOICES = [
+        (LOW,    'Low'),
+        (MEDIUM, 'Medium'),
+        (HIGH,   'High'),
+        (URGENT, 'Urgent'),
+    ]
+
+    BILLING      = 'billing'
+    DOCTOR       = 'doctor'
+    STAFF        = 'staff'
+    FACILITY     = 'facility'
+    APPOINTMENT  = 'appointment'
+    INSURANCE    = 'insurance'
+    OTHER        = 'other'
+    CATEGORY_CHOICES = [
+        (BILLING,     'Billing & Payment'),
+        (DOCTOR,      'Doctor / Medical'),
+        (STAFF,       'Staff Behavior'),
+        (FACILITY,    'Facility & Hygiene'),
+        (APPOINTMENT, 'Appointment'),
+        (INSURANCE,   'Insurance'),
+        (OTHER,       'Other'),
+    ]
+
+    complaint_id = models.CharField(max_length=20, unique=True, editable=False)
+    patient      = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='complaints')
+    category     = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=OTHER)
+    priority     = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default=MEDIUM)
+    subject      = models.CharField(max_length=200)
+    description  = models.TextField()
+    attachment   = models.FileField(upload_to='complaints/', blank=True, null=True)
+    status       = models.CharField(max_length=20, choices=STATUS_CHOICES, default=OPEN)
+    # Related entities
+    related_doctor      = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
+    related_appointment = models.ForeignKey(Appointment, on_delete=models.SET_NULL, null=True, blank=True)
+    # Resolution
+    assigned_to     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_complaints')
+    resolution_note = models.TextField(blank=True)
+    resolved_at     = models.DateTimeField(null=True, blank=True)
+    # Rating
+    satisfaction_rating = models.PositiveSmallIntegerField(null=True, blank=True)  # 1-5
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.complaint_id}] {self.subject}"
+
+    def save(self, *args, **kwargs):
+        if not self.complaint_id:
+            import random
+            self.complaint_id = f"CMP{timezone.now().year}{random.randint(10000, 99999)}"
+        if self.status == self.RESOLVED and not self.resolved_at:
+            self.resolved_at = timezone.now()
+        super().save(*args, **kwargs)
+
+
+class ComplaintReply(models.Model):
+    complaint  = models.ForeignKey(Complaint, on_delete=models.CASCADE, related_name='replies')
+    author     = models.ForeignKey(User, on_delete=models.CASCADE)
+    message    = models.TextField()
+    is_staff   = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Reply by {self.author} on {self.complaint}"
+
+
+# ─────────────────────────────────────────────
+#  CHATBOT
+# ─────────────────────────────────────────────
+class ChatSession(models.Model):
+    session_id = models.CharField(max_length=36, unique=True, editable=False)
+    user       = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='chat_sessions')
+    started_at = models.DateTimeField(auto_now_add=True)
+    ended_at   = models.DateTimeField(null=True, blank=True)
+    is_active  = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Chat {self.session_id[:8]} – {self.user or 'Guest'}"
+
+    def save(self, *args, **kwargs):
+        if not self.session_id:
+            self.session_id = str(uuid.uuid4())
+        super().save(*args, **kwargs)
+
+
+class ChatMessage(models.Model):
+    USER = 'user'
+    BOT  = 'bot'
+    ROLE_CHOICES = [(USER, 'User'), (BOT, 'Bot')]
+
+    session    = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    role       = models.CharField(max_length=5, choices=ROLE_CHOICES)
+    content    = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"[{self.role}] {self.content[:60]}"
+
+
+
+
+
+

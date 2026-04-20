@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Complaints — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Complaint Box</h1>
+            <p class="subtitle">Submit and track your complaints</p>
+        </div>
+        <a href="{% url 'complaint_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Raise Complaint
+        </a>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:28px;">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-list" style="color:#3b82f6;"></i></div>
+            <div>
+                <div class="stat-num">{{ complaints|length }}</div>
+                <div class="stat-label">Total Complaints</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="fas fa-clock" style="color:#f59e0b;"></i></div>
+            <div>
+                <div class="stat-num">{% for c in complaints %}{% if c.status == 'open' or c.status == 'in_progress' %}{{ forloop.counter }}{% endif %}{% endfor %}</div>
+                <div class="stat-label">Active</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-check-circle" style="color:#10b981;"></i></div>
+            <div>
+                <div class="stat-num">{% for c in complaints %}{% if c.status == 'resolved' %}{{ forloop.counter }}{% endif %}{% endfor %}</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i></div>
+            <div>
+                <div class="stat-num">{% for c in complaints %}{% if c.priority == 'urgent' %}{{ forloop.counter }}{% endif %}{% endfor %}</div>
+                <div class="stat-label">Urgent</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-inbox" style="color:#3b82f6;margin-right:8px;"></i>All Complaints</h3>
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if complaints %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>Subject</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                        <tr>
+                            <td><code style="color:#3b82f6;font-size:.8rem;">{{ complaint.complaint_id }}</code></td>
+                            <td>{{ complaint.subject|truncatechars:30 }}</td>
+                            <td>{{ complaint.get_category_display }}</td>
+                            <td>
+                                {% if complaint.priority == 'urgent' %}<span class="badge badge-red">Urgent</span>
+                                {% elif complaint.priority == 'high' %}<span class="badge badge-amber">High</span>
+                                {% elif complaint.priority == 'medium' %}<span class="badge badge-blue">Medium</span>
+                                {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if complaint.status == 'open' %}<span class="badge badge-blue">Open</span>
+                                {% elif complaint.status == 'in_progress' %}<span class="badge badge-amber">In Progress</span>
+                                {% elif complaint.status == 'resolved' %}<span class="badge badge-green">Resolved</span>
+                                {% else %}<span class="badge badge-gray">Closed</span>{% endif %}
+                            </td>
+                            <td>{{ complaint.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'complaint_detail' complaint.pk %}" class="btn btn-outline btn-sm">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="icon">📬</div>
+                <p>No complaints found.</p>
+                <p class="text-sm text-muted" style="margin-top:8px;">If you have any concerns, feel free to raise a complaint.</p>
+                <a href="{% url 'complaint_create' %}" class="btn btn-primary" style="margin-top:16px;">Raise Complaint</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

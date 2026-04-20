@@ -36,4 +36,18 @@ urlpatterns = [
     # Invoices
     path('invoices/', views.invoice_list, name='invoice_list'),
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice_detail'),
+
+    # Payments
+    path('payments/', views.payment_list, name='payment_list'),
+    path('payments/create/', views.payment_create, name='payment_create'),
+    path('payments/create/<int:invoice_id>/', views.payment_create, name='payment_create_invoice'),
+    path('payments/<int:pk>/', views.payment_detail, name='payment_detail'),
+
+    # Complaints
+    path('complaints/', views.complaint_list, name='complaint_list'),
+    path('complaints/create/', views.complaint_create, name='complaint_create'),
+    path('complaints/<int:pk>/', views.complaint_detail, name='complaint_detail'),
+
+    # Chatbot
+    path('chatbot/', views.chatbot, name='chatbot'),
 ]

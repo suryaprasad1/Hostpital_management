@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Raise Complaint — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Raise a Complaint</h1>
+            <p class="subtitle">We value your feedback and will address your concerns</p>
+        </div>
+    </div>
+
+    <div class="card" style="max-width:700px;">
+        <div class="card-header">
+            <h3><i class="fas fa-exclamation-circle" style="color:#ef4444;margin-right:8px;"></i>Complaint Form</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label>{{ form.category.label }} <span class="required">*</span></label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <small class="error">{{ form.category.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>{{ form.priority.label }} <span class="required">*</span></label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                    <small class="error">{{ form.priority.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>{{ form.subject.label }} <span class="required">*</span></label>
+                    {{ form.subject }}
+                    {% if form.subject.errors %}
+                    <small class="error">{{ form.subject.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>{{ form.description.label }} <span class="required">*</span></label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <small class="error">{{ form.description.errors.0 }}</small>
+                    {% endif %}
+                    <small class="help-text">Please provide detailed information about your concern</small>
+                </div>
+
+                <div class="form-group">
+                    <label>{{ form.attachment.label }}</label>
+                    {{ form.attachment }}
+                    {% if form.attachment.errors %}
+                    <small class="error">{{ form.attachment.errors.0 }}</small>
+                    {% endif %}
+                    <small class="help-text">Upload any relevant documents or images (optional)</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Complaint
+                    </button>
+                    <a href="{% url 'complaint_list' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card" style="max-width:700px;margin-top:24px;">
+        <div class="card-body" style="background:#f8fafc;">
+            <h4 style="margin-bottom:12px;"><i class="fas fa-info-circle" style="color:#3b82f6;"></i> Help</h4>
+            <ul style="margin:0;padding-left:20px;color:#64748b;">
+                <li>Our team will review your complaint within 24-48 hours</li>
+                <li>You will receive updates via email/SMS</li>
+                <li>For urgent matters, please call our helpline</li>
+                <li>Please provide accurate details for faster resolution</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

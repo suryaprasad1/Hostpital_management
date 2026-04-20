@@ -266,11 +266,8 @@
             <a href="{% url 'home' %}">Home</a>
             <a href="{% url 'doctor_list' %}">Doctors</a>
             {% if user.is_authenticated %}
-            <a href="{% url 'appointment_book' %}">Book</a>
+            <a href="{% url 'appointment_book' %}">Book Appointment</a>
             <a href="{% url 'dashboard' %}">Dashboard</a>
-            <a href="{% url 'payment_list' %}">Payments</a>
-            <a href="{% url 'complaint_list' %}">Complaints</a>
-            <a href="{% url 'chatbot' %}">MediBot</a>
             {% endif %}
         </div>
         <div class="nav-right">
@@ -337,17 +334,9 @@
                 </ul>
             </div>
         </div>
-        <div class="footer-bottom">© 2025 MediCare Hospital Management System. All rights reserved.</div>
+        <div class="footer-bottom">©suryaprasad 2025 MediCare Hospital Management System. All rights reserved.</div>
     </div>
 </footer>
-{% if user.is_authenticated %}
-<!-- Floating Chatbot Button -->
-<a href="{% url 'chatbot' %}" id="chat-fab" title="Chat with MediBot"
-   style="position:fixed;bottom:28px;right:28px;z-index:999;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#0d9488,#0891b2);color:white;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 4px 20px rgba(13,148,136,.4);text-decoration:none;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 28px rgba(13,148,136,.55)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(13,148,136,.4)'">
-    🤖
-    <span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;width:18px;height:18px;border-radius:50%;font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;">AI</span>
-</a>
-{% endif %}
 
 </body>
 </html>

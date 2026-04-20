@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     Specialization, Doctor, DoctorReview, Patient, Appointment,
-    MedicalRecord, Vitals, InsuranceProvider, InsurancePolicy, InsuranceClaim, Invoice
+    MedicalRecord, Vitals, InsuranceProvider, InsurancePolicy, InsuranceClaim,
+    Invoice, Payment, PaymentRefund, Complaint, ComplaintReply, ChatSession, ChatMessage
 )
 
 
@@ -108,6 +109,69 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_filter = ['status', 'issue_date']
     search_fields = ['invoice_id', 'patient__user__first_name']
     readonly_fields = ['invoice_id', 'created_at']
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['payment_id', 'patient', 'amount', 'method', 'status', 'created_at']
+    list_filter = ['status', 'method', 'created_at']
+    search_fields = ['payment_id', 'patient__user__first_name', 'transaction_ref']
+    readonly_fields = ['payment_id', 'created_at', 'updated_at', 'paid_at']
+
+    actions = ['mark_success', 'mark_failed']
+
+    def mark_success(self, request, queryset):
+        queryset.update(status='success')
+    mark_success.short_description = "Mark as Success"
+
+    def mark_failed(self, request, queryset):
+        queryset.update(status='failed')
+    mark_failed.short_description = "Mark as Failed"
+
+
+@admin.register(PaymentRefund)
+class PaymentRefundAdmin(admin.ModelAdmin):
+    list_display = ['payment', 'amount', 'processed_at']
+    search_fields = ['payment__payment_id']
+
+
+@admin.register(Complaint)
+class ComplaintAdmin(admin.ModelAdmin):
+    list_display = ['complaint_id', 'patient', 'subject', 'category', 'priority', 'status', 'created_at']
+    list_filter = ['status', 'priority', 'category', 'created_at']
+    search_fields = ['complaint_id', 'patient__user__first_name', 'subject']
+    readonly_fields = ['complaint_id', 'created_at', 'updated_at']
+
+    actions = ['mark_resolved', 'mark_closed']
+
+    def mark_resolved(self, request, queryset):
+        queryset.update(status='resolved')
+    mark_resolved.short_description = "Mark as Resolved"
+
+    def mark_closed(self, request, queryset):
+        queryset.update(status='closed')
+    mark_closed.short_description = "Mark as Closed"
+
+
+@admin.register(ComplaintReply)
+class ComplaintReplyAdmin(admin.ModelAdmin):
+    list_display = ['complaint', 'author', 'is_staff', 'created_at']
+    list_filter = ['is_staff', 'created_at']
+    search_fields = ['complaint__complaint_id', 'author__username']
+
+
+@admin.register(ChatSession)
+class ChatSessionAdmin(admin.ModelAdmin):
+    list_display = ['session_id', 'user', 'started_at', 'ended_at', 'is_active']
+    list_filter = ['is_active', 'started_at']
+    search_fields = ['session_id', 'user__username']
+
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ['session', 'role', 'content', 'created_at']
+    list_filter = ['role', 'created_at']
+    search_fields = ['content', 'session__session_id']
 
 # Admin site customization
 admin.site.site_header = "🏥 MediCare Hospital Admin"

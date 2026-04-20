@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Payments — MediCare{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <h1>Payment History</h1>
+            <p class="subtitle">View all your payment transactions</p>
+        </div>
+        <a href="{% url 'payment_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Make Payment
+        </a>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:28px;">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-credit-card" style="color:#10b981;"></i></div>
+            <div>
+                <div class="stat-num">{{ payments|length }}</div>
+                <div class="stat-label">Total Transactions</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-check-circle" style="color:#3b82f6;"></i></div>
+            <div>
+                <div class="stat-num">₹{% for p in payments %}{% if p.status == 'success' %}{{ p.amount }}{% endif %}{% endfor %}</div>
+                <div class="stat-label">Total Paid</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="fas fa-clock" style="color:#f59e0b;"></i></div>
+            <div>
+                <div class="stat-num">{% for p in payments %}{% if p.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor %}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fas fa-times-circle" style="color:#ef4444;"></i></div>
+            <div>
+                <div class="stat-num">{% for p in payments %}{% if p.status == 'failed' %}{{ forloop.counter }}{% endif %}{% endfor %}</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-history" style="color:#3b82f6;margin-right:8px;"></i>All Payments</h3>
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if payments %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Invoice</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td><code style="color:#3b82f6;font-size:.8rem;">{{ payment.payment_id|truncatechars:12 }}</code></td>
+                            <td>{{ payment.created_at|date:"d M Y, h:i A" }}</td>
+                            <td style="font-weight:700;">₹{{ payment.amount }}</td>
+                            <td>{{ payment.get_method_display }}</td>
+                            <td>
+                                {% if payment.status == 'success' %}<span class="badge badge-green">Success</span>
+                                {% elif payment.status == 'pending' %}<span class="badge badge-amber">Pending</span>
+                                {% elif payment.status == 'failed' %}<span class="badge badge-red">Failed</span>
+                                {% elif payment.status == 'refunded' %}<span class="badge badge-blue">Refunded</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if payment.invoice %}
+                                <a href="{% url 'invoice_detail' payment.invoice.pk %}">{{ payment.invoice.invoice_id }}</a>
+                                {% else %}<span class="text-muted">Direct</span>{% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'payment_detail' payment.pk %}" class="btn btn-outline btn-sm">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="icon">💳</div>
+                <p>No payment history found.</p>
+                <p class="text-sm text-muted" style="margin-top:8px;">Your payment transactions will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
